@@ -8,6 +8,12 @@ try:
 	import stl10_c
 except ModuleNotFoundError:
 	from . import stl10_c
+
+try:
+	import ucr_archive
+except ModuleNotFoundError:
+	from . import ucr_archive
+    
 import sys
 
 def get_data(args):
@@ -95,8 +101,6 @@ def get_data(args):
 
 		 ])
 
-
-
 	if(args.dataset == 'cifar10'):
 		print("| Preparing CIFAR-10 dataset...")
 		sys.stdout.write("| ")
@@ -172,9 +176,18 @@ def get_data(args):
 		testset = tin200.TINY_IMAGENET_200(root=args.datadir,
 			split='test', transform=transform_test_tin200, test_list = [[args.test_x,''],[args.test_y,'']])
 		num_classes = 11
+	elif (args.dataset == 'ucr-archive'):
+		print("| Preparing UCRArchive dataset...")
+		#trainset = ucr_archive.UCRArchive(args.datadir, 'SmoothSubspace', datasetType = 'TRAIN', transform=None)
+		#testset = ucr_archive.UCRArchive(args.datadir, 'SmoothSubspace', datasetType = 'TEST', transform=None)        
+		#num_classes = 3
+		trainset = ucr_archive.UCRArchive(args.datadir, 'Crop', datasetType = 'TRAIN', transform=None)
+		testset = ucr_archive.UCRArchive(args.datadir, 'Crop', datasetType = 'TEST', transform=None)        
+		num_classes = 24
+		series_length = 46
 
 	else:
 		print("Unknown data set")
 		sys.exit(0)
 
-	return trainset, testset, num_classes
+	return trainset, testset, num_classes, series_length
