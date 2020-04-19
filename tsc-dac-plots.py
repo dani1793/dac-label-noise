@@ -11,6 +11,7 @@ import argparse
 
 import numpy as np
 import matplotlib.pyplot as plt
+import os
 
 
 parser = argparse.ArgumentParser(description='Plot creation for TSC DAC architecture',
@@ -54,6 +55,56 @@ def generateNoisyDatasetClassDist():
     plt.savefig('results/plots/%s-noisy-%s-class-dist.png'%(args.dataset, str(args.noisy_percentage)))
     plt.close()
     
+def _extractAccumuatedActivations(path, files):
+    activations = []
+    for file in files:
+        epoch = np.load(path + '/' + file,  allow_pickle=True);
+        if len(activations) == 0:
+            activations = epoch.mean(axis=0);
+            activations = np.expand_dims(activations, axis = 1)
+        else:
+            activations = np.append(activations, np.expand_dims(epoch.mean(axis=0), axis = 1), axis = 1)
+        # print(activations.shape)
+    return activations
 
-generateOriginalDatasetClassDist()
-generateNoisyDatasetClassDist()
+def _plotAccumulatedActivations(activations, activationType):
+    for c in range(activations.shape[0]):
+        if c == activations.shape[0] - 1:
+            plt.plot(activations[c], label = '%s'%('Abstention'))
+        else:
+            plt.plot(activations[c], label = 'class %s'%(str(c)))
+    plt.title('%s Activation energies for %s with noise %s'%(activationType, args.dataset, str(args.noisy_percentage)))
+    plt.xlabel('Epochs')
+    plt.ylabel('mean activation energy / epoch')
+    plt.legend(loc='upper right', fontsize='xx-small')
+    # plt.savefig('results/plots/%s-%s-noisy-%s-activations.png'%(args.dataset, activationType, str(args.noisy_percentage)), dpi = 1080)
+    plt.savefig('results/plots/%s-%s-noisy-%s-activations.png'%(args.dataset, activationType, str(args.noisy_percentage)), dpi = 1080, format='jpeg')
+    plt.close()
+
+def generateActivationEnergyPlotsPerEpoch():
+    rootPath = 'results/' + args.dataset.lower() + '/' + str(args.noisy_percentage)
+    script_dir = os.path.dirname(os.path.realpath('__file__'))
+   # script_dir = os.path.dirname(__file__) # <-- absolute dir the script is in
+    abs_file_path = os.path.join(script_dir, rootPath)
+    print(abs_file_path)
+    entries = os.listdir(abs_file_path)
+    entries = np.array(entries)
+    trainIndices = ['train' in entry for entry in entries]
+    valIndices = [not 'train' in entry for entry in entries]
+    valActivations = entries[valIndices]
+    trainActivations = entries[trainIndices]
+    
+    accumlatedTrainActivations = _extractAccumuatedActivations(abs_file_path, trainActivations)
+    accumlatedValActivations = _extractAccumuatedActivations(abs_file_path, valActivations)
+    
+    _plotAccumulatedActivations(accumlatedTrainActivations, 'train')
+    _plotAccumulatedActivations(accumlatedValActivations, 'val')
+
+    
+    
+    
+
+#generateOriginalDatasetClassDist()
+#generateNoisyDatasetClassDist()
+
+generateActivationEnergyPlotsPerEpoch()
