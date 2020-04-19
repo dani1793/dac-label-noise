@@ -31,6 +31,7 @@ parser.add_argument('--train_y', default=None, type=str, help='train labels.  wi
 parser.add_argument('--test_x', default=None, type=str, help='test features. will default to the dataset default')
 parser.add_argument('--test_y', default=None, type=str, help='test labels. will default to the dataset default')
 
+parser.add_argument('--noise_percentage',default=0, type=float, help='noise percentage in dataset')
 
 parser.add_argument('--resume', '-r', action='store_true', help='resume from checkpoint')
 parser.add_argument('--testOnly', '-t', action='store_true', help='Test mode with the saved model')
@@ -163,7 +164,7 @@ sys.stdout.flush()
 #abstain class id is the last class
 abstain_class_id = num_classes
 #simulate label noise if needed
-trainset = label_noise.label_noise(args, trainset, num_classes)
+#trainset = label_noise.label_noise(args, trainset, num_classes)
 #set data loaders
 trainloader = torch.utils.data.DataLoader(trainset, batch_size=args.batch_size, shuffle=True, num_workers=2)
 testloader = torch.utils.data.DataLoader(testset, batch_size=args.test_batch_size, shuffle=False, num_workers=2)
